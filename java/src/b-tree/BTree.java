@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.Pair;
 
 public class BTree{
 
@@ -17,7 +16,31 @@ public class BTree{
     }
 
     //VICTOR
-    public void insert(int value){
+    public void recursiveInsert(int value){
+        if(isEmpty()){
+            root = new BNode();
+            root.addKey(value);
+        } else {
+            recursiveInsert(root, value);
+        }
+    }
+
+    private void recursiveInsert(BNode node, int value){
+        if(node.size == order-1){
+                split(node);
+                recursiveInsert(node.parent, value);
+        } else if(node.isLeaf()){
+            node.addKey(value);
+            if(node.size == order-1){
+                split(node);
+            }
+        } else {
+            int i = 0;
+            while(i < node.size && value > node.keys.get(i)) {
+                i++;
+            }
+            recursiveInsert(node.children.get(i), value);
+        }
     }
 
     public boolean isEmpty(){
@@ -29,11 +52,11 @@ public class BTree{
         return 0;
     }
 
-    public BNodePosition search(int value){
-        return search(root, value);
+    public BNodePosition recursiveSearch(int value){
+        return recursiveSearch(root, value);
     }
 
-    private BNodePosition search(BNode node, int value){
+    private BNodePosition recursiveSearch(BNode node, int value){
         int i = 0;
         while(i < node.size && value > node.keys.get(i)) {
             i++;
@@ -42,7 +65,7 @@ public class BTree{
             return new BNodePosition(node, i);
         }
         if(!node.isLeaf()) {
-            return search(node.children.get(i), value);
+            return recursiveSearch(node.children.get(i), value);
         }
 
         return new BNodePosition(null, null);
@@ -82,12 +105,28 @@ public class BTree{
         for(int i = 0; i < (order - 1) / 2; i++){
             left.addKey(node.keys.get(i));
         }
+        if(!node.isLeaf()){
+            for(int i = 0; i < order/2; i++){
+                left.children.add(node.children.get(i));
+                node.children.get(i).parent = left;
+            }
+        }
+
         BNode right = new BNode();
         for(int i = (order - 1) / 2 + 1; i < node.keys.size(); i++){
             right.addKey(node.keys.get(i));
         }
+        if(!node.isLeaf()){
+            for(int i = order/2; i < node.children.size(); i++){
+                right.children.add(node.children.get(i));
+                node.children.get(i).parent = right;
+            }
+        }
 
-        if(node.parent == null) node.parent = new BNode();
+        if(node.parent == null){
+            node.parent = new BNode();
+            root = node.parent;
+        }
         BNode parent = node.parent;
 
         left.parent = parent;
@@ -100,14 +139,12 @@ public class BTree{
         parent.children.add(index + 1, right);
     }
 
-    //ANTONY
-    private BNode getRoot(){
+    public BNode getRoot(){
         return root;
     }
 
 }
 
-//VICTOR
 class BNode{
     
     BNode parent;
