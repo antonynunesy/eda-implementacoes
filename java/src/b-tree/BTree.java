@@ -5,18 +5,18 @@ public class BTree{
     private BNode root;
     private int order;
 
-    public BTree(int order){
+    public BTree(int order) {
         this.root = null;
         this.order = order;
     }
 
-    public BTree(){
+    public BTree() {
         this.root = null;
         this.order = 4;
     }
 
     //VICTOR
-    public void recursiveInsert(int value){
+    public void recursiveInsert(int value) {
         if(isEmpty()){
             root = new BNode();
             root.addKey(value);
@@ -25,7 +25,7 @@ public class BTree{
         }
     }
 
-    private void recursiveInsert(BNode node, int value){
+    private void recursiveInsert(BNode node, int value) {
         if(node.size == order-1){
                 split(node);
                 recursiveInsert(node.parent, value);
@@ -43,7 +43,7 @@ public class BTree{
         }
     }
 
-    public boolean isEmpty(){
+    public boolean isEmpty() {
         return root == null;
     }
 
@@ -52,11 +52,11 @@ public class BTree{
         return 0;
     }
 
-    public BNodePosition recursiveSearch(int value){
+    public BNodePosition recursiveSearch(int value) {
         return recursiveSearch(root, value);
     }
 
-    private BNodePosition recursiveSearch(BNode node, int value){
+    private BNodePosition recursiveSearch(BNode node, int value) {
         int i = 0;
         while(i < node.size && value > node.keys.get(i)) {
             i++;
@@ -71,14 +71,36 @@ public class BTree{
         return new BNodePosition(null, null);
     }
 
-    //VICTOR
-    public BNode max(){
-        return null;
+    public BNodePosition recursiveMax() {
+        if(isEmpty()) {
+            return new BNodePosition(null, null);
+        }
+
+        return recursiveMax(root);
     }
 
-    //VICTOR
-    public BNode min(){
-        return null;
+    private BNodePosition recursiveMax(BNode node) {
+         if(node.isLeaf()) {
+            return new BNodePosition(node, node.keys.size()-1);
+        }
+
+        return recursiveMax(node.children.get(node.children.size()-1));
+    }
+
+    public BNodePosition recursiveMin() {
+        if(isEmpty()) {
+            return new BNodePosition(null, null);
+        }
+
+        return recursiveMin(root);
+    }
+
+    private BNodePosition recursiveMin(BNode node) {
+        if(node.isLeaf()) {
+            return new BNodePosition(node, 0);
+        }
+
+        return recursiveMin(node.children.get(0));
     }
 
     //ANTONY
@@ -101,10 +123,13 @@ public class BTree{
     }
 
     private void split(BNode node){
+        //Nó da esquerda
         BNode left = new BNode();
+        //Primeira metade da keys no nó da esquerda
         for(int i = 0; i < (order - 1) / 2; i++){
             left.addKey(node.keys.get(i));
         }
+        //Primeira metade dos filhos no nó da esquerda
         if(!node.isLeaf()){
             for(int i = 0; i < order/2; i++){
                 left.children.add(node.children.get(i));
@@ -112,10 +137,13 @@ public class BTree{
             }
         }
 
+        //Nó da direita
         BNode right = new BNode();
+        //Segunda metade da keys no nó da direita
         for(int i = (order - 1) / 2 + 1; i < node.keys.size(); i++){
             right.addKey(node.keys.get(i));
         }
+        //Segunda metade dos filhos no nó da direita
         if(!node.isLeaf()){
             for(int i = order/2; i < node.children.size(); i++){
                 right.children.add(node.children.get(i));
@@ -123,12 +151,15 @@ public class BTree{
             }
         }
 
+        //Se for raiz
         if(node.parent == null){
             node.parent = new BNode();
             root = node.parent;
         }
+
         BNode parent = node.parent;
 
+        //Atribui novos filhos
         left.parent = parent;
         right.parent = parent;
 
@@ -183,5 +214,10 @@ class BNodePosition{
     public BNodePosition(BNode node, Integer position){
         this.node = node;
         this.position = position;
+    }
+
+    public Integer getValue() {
+        if(node == null || position == null) return null;
+        return node.keys.get(position);
     }
 }
