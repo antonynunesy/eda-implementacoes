@@ -14,8 +14,9 @@ public class BTree{
         this.root = null;
         this.order = 4;
     }
+//INSERT
 
-    //VICTOR
+    //Recursivo
     public void recursiveInsert(int value) {
         if(isEmpty()){
             root = new BNode();
@@ -43,6 +44,11 @@ public class BTree{
         }
     }
 
+    //Iterativo
+    public void insert(int value) {
+    }
+
+
     public boolean isEmpty() {
         return root == null;
     }
@@ -52,6 +58,9 @@ public class BTree{
         return 0;
     }
 
+//SEARCH
+
+    //Recursivo
     public BNodePosition recursiveSearch(int value) {
         return recursiveSearch(root, value);
     }
@@ -68,12 +77,20 @@ public class BTree{
             return recursiveSearch(node.children.get(i), value);
         }
 
-        return new BNodePosition(null, null);
+        return new BNodePosition();
     }
 
+    //Iterativo
+    public BNodePosition search(int value) {
+        return null;
+    }
+
+//MAX
+
+    //Recursivo
     public BNodePosition recursiveMax() {
         if(isEmpty()) {
-            return new BNodePosition(null, null);
+            return new BNodePosition();
         }
 
         return recursiveMax(root);
@@ -87,9 +104,17 @@ public class BTree{
         return recursiveMax(node.children.get(node.children.size()-1));
     }
 
+    //Iterativo
+    public BNodePosition max() {
+        return null;
+    }
+
+//MIN
+
+    //Recursivo
     public BNodePosition recursiveMin() {
         if(isEmpty()) {
-            return new BNodePosition(null, null);
+            return new BNodePosition();
         }
 
         return recursiveMin(root);
@@ -103,13 +128,30 @@ public class BTree{
         return recursiveMin(node.children.get(0));
     }
 
+    //Iterativo
+    public BNodePosition min() {
+        return null;
+    }
+
     //ANTONY
     public void remove(int value){
     }
 
     //VICTOR
     public ArrayList<BNode> depthFS(){
-        return null;
+        ArrayList<BNode> nodes = new ArrayList<>();
+        dfs(root, nodes);
+        return nodes;
+    }
+
+    private void dfs(BNode node, ArrayList<BNode> nodes){
+        if(node == null) return;
+
+        nodes.add(node);
+
+        for(BNode child : node.children){
+            dfs(child, nodes);
+        }
     }
 
     //ANTONY
@@ -209,15 +251,20 @@ class BNode{
 class BNodePosition{
     
     BNode node;
-    Integer position;
+    int position;
 
-    public BNodePosition(BNode node, Integer position){
+    public BNodePosition(){
+        this.node = null;
+        this.position = -1;
+    }
+
+    public BNodePosition(BNode node, int position){
         this.node = node;
         this.position = position;
     }
 
     public Integer getValue() {
-        if(node == null || position == null) return null;
+        if(node == null || position == -1) return null;
         return node.keys.get(position);
     }
 }
