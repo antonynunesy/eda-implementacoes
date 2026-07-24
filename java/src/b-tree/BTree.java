@@ -1,4 +1,6 @@
 import java.util.ArrayList;
+import java.util.Queue;
+import java.util.LinkedList;
 
 public class BTree{
 
@@ -15,7 +17,6 @@ public class BTree{
         this.order = 4;
     }
 
-    //VICTOR
     public void recursiveInsert(int value) {
         if(isEmpty()){
             root = new BNode();
@@ -47,10 +48,16 @@ public class BTree{
         return root == null;
     }
 
-    //ANTONY
     public int height(){
-        return 0;
+        if(isEmpty()) return 0;
+        return height(root);
     }
+
+    private int height(BNode node){
+        if(node.isLeaf()) return 1;
+        return 1 + height(node.children.get(0));
+    }
+
 
     public BNodePosition recursiveSearch(int value) {
         return recursiveSearch(root, value);
@@ -112,10 +119,27 @@ public class BTree{
         return null;
     }
 
-    //ANTONY
     public ArrayList<BNode> breadthFS(){
-        return null;
-    }
+        ArrayList<BNode> result = new ArrayList<>();
+
+        if(isEmpty()) return result;
+
+        Queue<BNode> queue = new LinkedList<>();
+        queue.add(root);
+
+        while(!queue.isEmpty()){
+            BNode current = queue.poll();
+            result.add(current);
+
+            if(!current.isLeaf()){
+                for(BNode child : current.children){
+                    queue.add(child);
+                }
+            }
+        }
+        return result;
+    }        
+
 
     //ANTONY
     public int size(){
