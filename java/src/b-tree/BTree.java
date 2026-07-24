@@ -103,7 +103,6 @@ public class BTree{
         return new BNodePosition();
     }
 
-    //Iterativo
     public BNodePosition search(int value) {
         BNode node = root;
         while(node != null) {
@@ -120,9 +119,6 @@ public class BTree{
         return new BNodePosition();
     }
 
-//MAX
-
-    //Recursivo
     public BNodePosition recursiveMax() {
         if(isEmpty()) {
             return new BNodePosition();
@@ -139,7 +135,6 @@ public class BTree{
         return recursiveMax(node.children.get(node.children.size()-1));
     }
 
-    //Iterativo
     public BNodePosition max() {
         if(isEmpty()) {
             return new BNodePosition();
@@ -152,9 +147,6 @@ public class BTree{
         return new BNodePosition(node, node.size-1);
     }
 
-//MIN
-
-    //Recursivo
     public BNodePosition recursiveMin() {
         if(isEmpty()) {
             return new BNodePosition();
@@ -171,9 +163,16 @@ public class BTree{
         return recursiveMin(node.children.get(0));
     }
 
-    //Iterativo
     public BNodePosition min() {
-        return null;
+        if(isEmpty()) {
+            return new BNodePosition();
+        }
+
+        BNode node = root;
+        while(!node.isLeaf()) {
+            node = node.children.get(0);
+        }
+        return new BNodePosition(node, 0);
     }
 
     //ANTONY
