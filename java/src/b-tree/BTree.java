@@ -6,6 +6,7 @@ public class BTree{
 
     private BNode root;
     private int order;
+    private int size;
 
     public BTree(int order) {
         this.root = null;
@@ -26,6 +27,7 @@ public class BTree{
         if(isEmpty()){
             root = new BNode(this.order);
             root.addKey(value);
+            size++;
         } else {
             if(root.isFull()){
                 split(root);
@@ -44,6 +46,7 @@ public class BTree{
     private void recursiveInsert(BNode node, int value) {
         if(node.isLeaf()){
             node.addKey(value);
+            size++;
         } else {
             int idx = buscaBinaria(node, value);
             BNode child = node.children.get(idx);
@@ -67,6 +70,7 @@ public class BTree{
         if(isEmpty()){
             root = new BNode(this.order);
             root.addKey(value);
+            size++;
         } else {
             if(root.isFull()){
                 split(root);
@@ -85,7 +89,8 @@ public class BTree{
                 }
                 node = node.children.get(idx);
             }
-
+            
+            size++;
             node.addKey(value);
         }
     }
@@ -260,13 +265,172 @@ public class BTree{
     }
 
     /**
-     * Remove um valor da árvore.
+     * Remove um valor da árvore, caso ele exista.
+     * Se a chave estiver em um nó interno, é substituída pelo predecessor
+     * (maior valor da subárvore esquerda) antes da remoção efetiva na folha.
      *
      * @param value valor a ser removido
      */
-    //ANTONY
     public void remove(int value){
+        if(isEmpty()) return;
+
+        BNodePosition pos = recursiveSearch(value);
+        if(pos.node == null) return; // valor nao existe
+
+        BNode node = pos.node;
+        int index = pos.position;
+
+        if(!node.isLeaf()){
+            // substitui pelo predecessor (maior valor da subarvore esquerda)
+            BNodePosition pred = recursiveMax(node.children.get(index));
+            node.keys.set(index, pred.getValue());
+            node = pred.node;
+            index = pred.position;
+        }
+
+        // remove a chave da folha
+        node.keys.remove(index);
+        node.size--;
+        size--;
+
+        corrigirUnderflow(node);
     }
+
+    /**
+     * Retorna o número mínimo de chaves permitido em um nó, de acordo com a ordem da árvore.
+     *
+     * @return quantidade mínima de chaves por nó
+     */
+    private int minKeys(){
+        return (int) Math.ceil(order/2.0) - 1;
+    }
+
+
+    /**
+     * Verifica se um nó ficou abaixo do mínimo de chaves após uma remoção,
+     * corrigindo via redistribuição ou concatenação com um irmão.
+     *
+     * @param node nó a ser verificado
+     */
+    private void corrigirUnderflow(BNode node){
+        if(node == root){
+            //raiz sem chaves e com filho então filho vira a nova raiz
+            if(node.size == 0 && !node.isLeaf()){
+                root = node.children.get(0);
+                root.parent = null;
+            }
+            return;
+        }
+
+        if(node.size >= minKeys()) return; //sem underflow
+
+        BNode parent = node.parent;
+        int index = parent.children.indexOf(node);
+
+        //pega o irmao esquerdo, se o node nao for o primeiro filho
+        BNode leftSibling = null;
+        if(index > 0){
+            leftSibling = parent.children.get(index - 1);
+        }
+
+        //pega o irmao direito, se o node nao for o ultimo filho
+        BNode rightSibling = null;
+        if(index < parent.children.size() - 1){
+            rightSibling = parent.children.get(index + 1);
+        }
+
+        if(leftSibling != null && leftSibling.size > minKeys()){
+            redistribuirEsquerda(node, leftSibling, parent, index);
+        } else if(rightSibling != null && rightSibling.size > minKeys()){
+            redistribuirDireita(node, rightSibling, parent, index);
+        } else if(leftSibling != null){
+            concatenar(leftSibling, node, parent, index - 1);
+        } else {
+            concatenar(node, rightSibling, parent, index);
+        }
+    }
+
+    /**
+     * Redistribui uma chave do irmão esquerdo para o nó deficiente, passando pelo pai.
+     *
+     * @param node nó com underflow
+     * @param leftSibling irmão esquerdo com chaves sobrando
+     * @param parent pai dos dois nós
+     * @param index índice do node na lista de filhos do pai
+     */
+    private void redistribuirEsquerda(BNode node, BNode leftSibling, BNode parent, int index){
+        //chave do pai desce para o inicio do node
+        node.keys.add(0, parent.keys.get(index - 1));
+        node.size++;
+
+        //maior chave do irmao esquerdo sobe para o pai
+        parent.keys.set(index - 1, leftSibling.keys.remove(leftSibling.size - 1));
+        leftSibling.size--;
+
+        //move o ultimo filho do irmao, se houver
+        if(!leftSibling.isLeaf()){
+            BNode child = leftSibling.children.remove(leftSibling.children.size() - 1);
+            child.parent = node;
+            node.children.add(0, child);
+        }
+    }
+
+    /**
+     * Redistribui uma chave do irmão direito para o nó deficiente, passando pelo pai.
+     *
+     * @param node nó com underflow
+     * @param rightSibling irmão direito com chaves sobrando
+     * @param parent pai dos dois nós
+     * @param index índice do node na lista de filhos do pai
+     */
+    private void redistribuirDireita(BNode node, BNode rightSibling, BNode parent, int index){
+        //chave do pai desce para o final do node
+        node.keys.add(parent.keys.get(index));
+        node.size++;
+
+        //menor chave do irmao direito sobe para o pai
+        parent.keys.set(index, rightSibling.keys.remove(0));
+        rightSibling.size--;
+
+        //move o primeiro filho do irmao, se houver
+        if(!rightSibling.isLeaf()){
+            BNode child = rightSibling.children.remove(0);
+            child.parent = node;
+            node.children.add(child);
+        }
+    }
+
+    /**
+     * Concatena dois nós irmãos com a chave do pai que os separava, propagando
+     * a checagem de underflow para o pai.
+     *
+     * @param left nó da esquerda (recebe as chaves e filhos do da direita)
+     * @param right nó da direita (é descartado apos a concatenacao)
+     * @param parent pai dos dois nós
+     * @param parentKeyIndex índice da chave do pai que separa os dois nós
+     */
+    private void concatenar(BNode left, BNode right, BNode parent, int parentKeyIndex){
+        //chave do pai desce para o meio da concatenacao
+        left.keys.add(parent.keys.remove(parentKeyIndex));
+        left.size++;
+        parent.size--;
+
+        //chaves e filhos do node direito migram para o esquerdo
+        left.keys.addAll(right.keys);
+        left.size += right.size;
+
+        if(!right.isLeaf()){
+            for(BNode child : right.children){
+                child.parent = left;
+            }
+            left.children.addAll(right.children);
+        }
+
+        //remove o filho direito do pai e propaga underflow, se houver
+        parent.children.remove(right);
+        corrigirUnderflow(parent);
+    }    
+
 
     /**
      * Retorna os nós da árvore em ordem de profundidade.
@@ -327,7 +491,7 @@ public class BTree{
      * @return quantidade de chaves presentes na árvore
      */
     public int size(){
-        return 0;
+        return this.size;
     }
 
     /**
