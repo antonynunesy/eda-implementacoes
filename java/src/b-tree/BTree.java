@@ -37,7 +37,7 @@ public class BTree{
     }
 
     /**
-     * Auxilia a inserção recursiva, percorrendo os nós da árvore até encontrar uma folha.
+     * Inserção recursiva, percorrendo os nós da árvore até encontrar uma folha.
      * A decisão para qual filho seguir é feita por busca binária.
      *
      * @param node nó atual da recursão
@@ -132,11 +132,14 @@ public class BTree{
      * @return posição do nó e da chave, ou uma posição vazia caso não seja encontrado
      */
     public BNodePosition recursiveSearch(int value) {
+        if(isEmpty()) {
+        return new BNodePosition();
+        }
         return recursiveSearch(root, value);
     }
 
     /**
-     * Auxilia a busca recursiva percorrendo a árvore até encontrar a chave ou uma folha.
+     * Busca recursiva percorrendo a árvore até encontrar a chave ou uma folha.
      * A decisão para qual filho seguir é feita por busca binária.
      *
      * @param node nó atual da recursão
@@ -170,6 +173,7 @@ public class BTree{
             if(idx < node.size && value == node.keys.get(idx)) {
                 return new BNodePosition(node, idx);
             }
+            if(node.isLeaf()) break;
             node = node.children.get(idx);
         }
 
@@ -273,22 +277,22 @@ public class BTree{
      */
     public void remove(int value){
         if(isEmpty()) return;
+        
+        BNodePosition pos = recursiveSearch(value); //posicao do valor a ser removido
+        if(pos.node == null) return; //valor nao existe
 
-        BNodePosition pos = recursiveSearch(value);
-        if(pos.node == null) return; // valor nao existe
-
-        BNode node = pos.node;
-        int index = pos.position;
+        BNode node = pos.node;  //nó do valor a ser removido
+        int index = pos.position; //index do valor a ser removido
 
         if(!node.isLeaf()){
-            // substitui pelo predecessor (maior valor da subarvore esquerda)
+            //substitui pelo predecessor (maior valor da subarvore esquerda)
             BNodePosition pred = recursiveMax(node.children.get(index));
             node.keys.set(index, pred.getValue());
             node = pred.node;
             index = pred.position;
         }
 
-        // remove a chave da folha
+        //remove a chave da folha
         node.keys.remove(index);
         node.size--;
         size--;
@@ -302,7 +306,7 @@ public class BTree{
      * @return quantidade mínima de chaves por nó
      */
     private int minKeys(){
-        return (int) Math.ceil(order/2.0) - 1;
+        return (int)Math.ceil(order/2.0) - 1;
     }
 
 
@@ -314,24 +318,27 @@ public class BTree{
      */
     private void corrigirUnderflow(BNode node){
         if(node == root){
-            //raiz sem chaves e com filho então filho vira a nova raiz
-            if(node.size == 0 && !node.isLeaf()){
-                root = node.children.get(0);
-                root.parent = null;
+            if(node.size == 0){
+                if(node.isLeaf()){
+                    root = null; //arvore ficou vazia
+                } else {
+                    //filho unico vira a nova raiz
+                    root = node.children.get(0);
+                    root.parent = null;
+                }
             }
             return;
         }
 
         if(node.size >= minKeys()) return; //sem underflow
-
         BNode parent = node.parent;
         int index = parent.children.indexOf(node);
 
         //pega o irmao esquerdo, se o node nao for o primeiro filho
         BNode leftSibling = null;
         if(index > 0){
-            leftSibling = parent.children.get(index - 1);
-        }
+        leftSibling = parent.children.get(index - 1);
+    }
 
         //pega o irmao direito, se o node nao for o ultimo filho
         BNode rightSibling = null;
@@ -564,13 +571,13 @@ public class BTree{
      * @return índice da posição do filho no qual seguir a busca
      */
     private int buscaBinaria(BNode node, int value) {
-        int init = 0, end = node.size-1, idx = 0;
+        int init = 0, end = node.size-1, idx = node.size;
         while(init <= end) {
             int mid = (init + end) / 2;
-            if(node.keys.get(mid) <= value) {
-                idx = mid+1;
+            if(node.keys.get(mid) < value) {
                 init = mid+1;
             } else {
+                idx = mid;
                 end = mid-1;
             }
         }
