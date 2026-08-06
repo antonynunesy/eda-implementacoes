@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.List;
 
 public class BTreeTest {
 
@@ -47,7 +48,7 @@ public class BTreeTest {
         assert tree.search(30).getValue() == 30;
         assert tree.search(40).getValue() == null;
 
-        tree.insert(40); // força split
+        tree.insert(40);
 
         assert tree.size() == 4;
         assert tree.height() == 2;
@@ -142,32 +143,42 @@ public class BTreeTest {
     }
 
     private static void testBreadthFS() {
-
         BTree tree = new BTree(4);
-
         int[] valores = {40,20,60,10,30,50,70};
-
         for (int v : valores)
             tree.insert(v);
 
         ArrayList<BNode> bfs = tree.breadthFS();
 
-        assert bfs.size() > 0;
+        //3 nos: raiz + 2 filhos
+        assert bfs.size() == 3;
+
+        //nivel 0: raiz com a chave [40]
         assert bfs.get(0) == tree.getRoot();
+        assert bfs.get(0).keys.equals(new ArrayList<>(List.of(40)));
+
+        //nivel 1: filho esquerdo [10,20,30], direito [50,60,70]
+        assert bfs.get(1).keys.equals(new ArrayList<>(List.of(10,20,30)));
+        assert bfs.get(2).keys.equals(new ArrayList<>(List.of(50,60,70)));
     }
 
     private static void testDepthFS() {
-
         BTree tree = new BTree(4);
-
         int[] valores = {40,20,60,10,30,50,70};
-
         for (int v : valores)
             tree.insert(v);
 
         ArrayList<BNode> dfs = tree.depthFS();
 
-        assert dfs.size() > 0;
+        //deve visitar exatamente 3 nos
+        assert dfs.size() == 3;
+
+        //preordem: raiz primeiro
         assert dfs.get(0) == tree.getRoot();
+        assert dfs.get(0).keys.equals(new ArrayList<>(List.of(40)));
+
+        //filho esquerdo antes do direito
+        assert dfs.get(1).keys.equals(new ArrayList<>(List.of(10,20,30)));
+        assert dfs.get(2).keys.equals(new ArrayList<>(List.of(50,60,70)));
     }
 }
