@@ -61,41 +61,6 @@ public class BTree{
     }
 
     /**
-     * Insere um valor na árvore B de forma iterativa.
-     * A decisão para qual filho seguir é feita por busca linear.
-     *
-     * @param value valor a ser inserido
-     */
-    public void insert(int value) {
-        if(isEmpty()){
-            root = new BNode(this.order);
-            root.addKey(value);
-            size++;
-        } else {
-            if(root.isFull()){
-                split(root);
-            }
-
-            BNode node = root;
-            while(!node.isLeaf()){
-                int idx = buscaLinear(node, value);
-                BNode child = node.children.get(idx);
-
-                if(child.isFull()) {
-                    split(child);
-                    if(value > node.keys.get(idx)) {
-                        idx++;
-                    }
-                }
-                node = node.children.get(idx);
-            }
-            
-            size++;
-            node.addKey(value);
-        }
-    }
-
-    /**
      * Verifica se a árvore está vazia.
      *
      * @return true se a árvore não possuir raiz; false caso contrário
@@ -157,26 +122,6 @@ public class BTree{
     }
 
     /**
-     * Realiza uma busca iterativa por um valor.
-     * A decisão para qual filho seguir é feita por busca linear.
-     *
-     * @param value valor procurado
-     * @return posição do nó e da chave, ou uma posição vazia caso não seja encontrado
-     */
-    public BNodePosition search(int value) {
-        BNode node = root;
-        while(node != null) {
-            int idx = buscaLinear(node, value);
-            if(idx < node.size && value == node.keys.get(idx)) {
-                return new BNodePosition(node, idx);
-            }
-            node = node.children.get(idx);
-        }
-
-        return new BNodePosition();
-    }
-
-    /**
      * Retorna a posição da maior chave da árvore de forma recursiva.
      *
      * @return posição da maior chave ou uma posição vazia se a árvore estiver vazia
@@ -201,50 +146,6 @@ public class BTree{
         }
 
         return recursiveMax(node.children.get(node.children.size()-1));
-    }
-
-    /**
-     * Retorna a posição da maior chave da árvore de forma iterativa.
-     *
-     * @return posição da maior chave ou uma posição vazia se a árvore estiver vazia
-     */
-    public BNodePosition max() {
-        if(isEmpty()) {
-            return new BNodePosition();
-        }
-
-        BNode node = root;
-        while(!node.isLeaf()) {
-            node = node.children.get(node.children.size()-1);
-        }
-        return new BNodePosition(node, node.size-1);
-    }
-
-    /**
-     * Retorna a posição da menor chave da árvore de forma recursiva.
-     *
-     * @return posição da menor chave ou uma posição vazia se a árvore estiver vazia
-     */
-    public BNodePosition recursiveMin() {
-        if(isEmpty()) {
-            return new BNodePosition();
-        }
-
-        return recursiveMin(root);
-    }
-
-    /**
-     * Auxilia a busca do menor valor de forma recursiva.
-     *
-     * @param node nó atual da recursão
-     * @return posição da menor chave da subárvore
-     */
-    private BNodePosition recursiveMin(BNode node) {
-        if(node.isLeaf()) {
-            return new BNodePosition(node, 0);
-        }
-
-        return recursiveMin(node.children.get(0));
     }
 
     /**
