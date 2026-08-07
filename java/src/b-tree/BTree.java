@@ -206,7 +206,7 @@ public class BTree{
      * @return quantidade mínima de chaves por nó
      */
     private int minKeys(){
-        return (int)Math.ceil(order/2.0) - 1;
+        return (this.order - 1)/2;
     }
 
 
@@ -340,7 +340,7 @@ public class BTree{
 
 
     /**
-     * Retorna os nós da árvore em ordem de profundidade.
+     * Retorna os nós da árvore em ordem de profundidade, em pré ordem.
      *
      * @return lista com os nós visitados em profundidade
      */
