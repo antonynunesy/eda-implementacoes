@@ -7,7 +7,7 @@ public class BTreeTest {
 
         testArvoreVazia();
         testInsertSearch();
-        testRecursiveInsert();
+        testInsertComMultiplosValores();
         testMinMax();
         testRemove();
         testHeight();
@@ -25,7 +25,6 @@ public class BTreeTest {
         assert tree.height() == 0;
 
         assert tree.search(10).getValue() == null;
-        assert tree.recursiveSearch(10).getValue() == null;
 
         assert tree.min().getValue() == null;
         assert tree.max().getValue() == null;
@@ -59,21 +58,21 @@ public class BTreeTest {
         assert tree.search(40).getValue() == 40;
     }
 
-    private static void testRecursiveInsert() {
+    private static void testInsertComMultiplosValores() {
 
         BTree tree = new BTree(4);
 
         int[] valores = {50,10,30,20,40,60};
 
         for (int v : valores)
-            tree.recursiveInsert(v);
+            tree.insert(v);
 
         assert tree.size() == 6;
 
         for (int v : valores)
-            assert tree.recursiveSearch(v).getValue() == v;
+            assert tree.search(v).getValue() == v;
 
-        assert tree.recursiveSearch(99).getValue() == null;
+        assert tree.search(99).getValue() == null;
     }
 
     private static void testMinMax() {
@@ -87,9 +86,6 @@ public class BTreeTest {
 
         assert tree.min().getValue() == 5;
         assert tree.max().getValue() == 90;
-
-        assert tree.recursiveMin().getValue() == 5;
-        assert tree.recursiveMax().getValue() == 90;
     }
 
     private static void testRemove() {

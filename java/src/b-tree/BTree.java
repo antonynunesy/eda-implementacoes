@@ -23,7 +23,7 @@ public class BTree{
      *
      * @param value valor a ser inserido
      */
-    public void recursiveInsert(int value) {
+    public void insert(int value) {
         if(isEmpty()){
             root = new BNode(this.order);
             root.addKey(value);
@@ -32,7 +32,7 @@ public class BTree{
             if(root.isFull()){
                 split(root);
             }
-            recursiveInsert(root, value);
+            insert(root, value);
         }
     }
 
@@ -43,7 +43,7 @@ public class BTree{
      * @param node nó atual da recursão
      * @param value valor a ser inserido
      */
-    private void recursiveInsert(BNode node, int value) {
+    private void insert(BNode node, int value) {
         if(node.isLeaf()){
             node.addKey(value);
             size++;
@@ -56,7 +56,7 @@ public class BTree{
                     idx++;
                 }
             }
-            recursiveInsert(node.children.get(idx), value);
+            insert(node.children.get(idx), value);
         }
     }
 
@@ -96,11 +96,11 @@ public class BTree{
      * @param value valor procurado
      * @return posição do nó e da chave, ou uma posição vazia caso não seja encontrado
      */
-    public BNodePosition recursiveSearch(int value) {
+    public BNodePosition search(int value) {
         if(isEmpty()) {
         return new BNodePosition();
         }
-        return recursiveSearch(root, value);
+        return search(root, value);
     }
 
     /**
@@ -111,14 +111,14 @@ public class BTree{
      * @param value valor procurado
      * @return posição do nó e da chave, ou uma posição vazia caso não seja encontrado
      */
-    private BNodePosition recursiveSearch(BNode node, int value) {
+    private BNodePosition search(BNode node, int value) {
         int idx = buscaBinaria(node, value);
 
         if(idx < node.size && value == node.keys.get(idx)) {
             return new BNodePosition(node, idx);
         }
         if(!node.isLeaf()) {
-            return recursiveSearch(node.children.get(idx), value);
+            return search(node.children.get(idx), value);
         }
 
         return new BNodePosition();
@@ -129,12 +129,12 @@ public class BTree{
      *
      * @return posição da maior chave ou uma posição vazia se a árvore estiver vazia
      */
-    public BNodePosition recursiveMax() {
+    public BNodePosition max() {
         if(isEmpty()) {
             return new BNodePosition();
         }
 
-        return recursiveMax(root);
+        return max(root);
     }
 
     /**
@@ -143,12 +143,12 @@ public class BTree{
      * @param node nó atual da recursão
      * @return posição da maior chave da subárvore
      */
-    private BNodePosition recursiveMax(BNode node) {
+    private BNodePosition max(BNode node) {
          if(node.isLeaf()) {
             return new BNodePosition(node, node.size-1);
         }
 
-        return recursiveMax(node.children.get(node.children.size()-1));
+        return max(node.children.get(node.children.size()-1));
     }
 
     /**
@@ -178,7 +178,7 @@ public class BTree{
     public void remove(int value){
         if(isEmpty()) return;
         
-        BNodePosition pos = recursiveSearch(value); //posicao do valor a ser removido
+        BNodePosition pos = search(value); //posicao do valor a ser removido
         if(pos.node == null) return; //valor nao existe
 
         BNode node = pos.node;  //nó do valor a ser removido
@@ -186,7 +186,7 @@ public class BTree{
 
         if(!node.isLeaf()){
             //substitui pelo predecessor (maior valor da subarvore esquerda)
-            BNodePosition pred = recursiveMax(node.children.get(index));
+            BNodePosition pred = max(node.children.get(index));
             node.keys.set(index, pred.getValue());
             node = pred.node;
             index = pred.position;
