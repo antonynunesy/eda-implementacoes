@@ -48,7 +48,7 @@ public class BTree{
             node.addKey(value);
             size++;
         } else {
-            int idx = buscaBinaria(node, value);
+            int idx = linearSearch(node, value);
             BNode child = node.children.get(idx);
             if(child.isFull()) {
                 split(child);
@@ -98,7 +98,7 @@ public class BTree{
      */
     public BNodePosition search(int value) {
         if(isEmpty()) {
-        return new BNodePosition();
+            return new BNodePosition();
         }
         return search(root, value);
     }
@@ -112,7 +112,7 @@ public class BTree{
      * @return posição do nó e da chave, ou uma posição vazia caso não seja encontrado
      */
     private BNodePosition search(BNode node, int value) {
-        int idx = buscaBinaria(node, value);
+        int idx = linearSearch(node, value);
 
         if(idx < node.size && value == node.keys.get(idx)) {
             return new BNodePosition(node, idx);
@@ -177,7 +177,7 @@ public class BTree{
      */
     public void remove(int value){
         if(isEmpty()) return;
-        
+
         BNodePosition pos = search(value); //posicao do valor a ser removido
         if(pos.node == null) return; //valor nao existe
 
@@ -197,7 +197,7 @@ public class BTree{
         node.size--;
         size--;
 
-        corrigirUnderflow(node);
+        fixUnderflow(node);
     }
 
     /**
@@ -206,9 +206,8 @@ public class BTree{
      * @return quantidade mínima de chaves por nó
      */
     private int minKeys(){
-        return (this.order - 1)/2;
+        return (this.order - 1) / 2;
     }
-
 
     /**
      * Verifica se um nó ficou abaixo do mínimo de chaves após uma remoção,
@@ -216,7 +215,7 @@ public class BTree{
      *
      * @param node nó a ser verificado
      */
-    private void corrigirUnderflow(BNode node){
+    private void fixUnderflow(BNode node){
         if(node == root){
             if(node.size == 0){
                 if(node.isLeaf()){
@@ -237,8 +236,8 @@ public class BTree{
         //pega o irmao esquerdo, se o node nao for o primeiro filho
         BNode leftSibling = null;
         if(index > 0){
-        leftSibling = parent.children.get(index - 1);
-    }
+            leftSibling = parent.children.get(index - 1);
+        }
 
         //pega o irmao direito, se o node nao for o ultimo filho
         BNode rightSibling = null;
@@ -247,13 +246,13 @@ public class BTree{
         }
 
         if(leftSibling != null && leftSibling.size > minKeys()){
-            redistribuirEsquerda(node, leftSibling, parent, index);
+            redistributeLeft(node, leftSibling, parent, index);
         } else if(rightSibling != null && rightSibling.size > minKeys()){
-            redistribuirDireita(node, rightSibling, parent, index);
+            redistributeRight(node, rightSibling, parent, index);
         } else if(leftSibling != null){
-            concatenar(leftSibling, node, parent, index - 1);
+            concatenate(leftSibling, node, parent, index - 1);
         } else {
-            concatenar(node, rightSibling, parent, index);
+            concatenate(node, rightSibling, parent, index);
         }
     }
 
@@ -265,7 +264,7 @@ public class BTree{
      * @param parent pai dos dois nós
      * @param index índice do node na lista de filhos do pai
      */
-    private void redistribuirEsquerda(BNode node, BNode leftSibling, BNode parent, int index){
+    private void redistributeLeft(BNode node, BNode leftSibling, BNode parent, int index){
         //chave do pai desce para o inicio do node
         node.keys.add(0, parent.keys.get(index - 1));
         node.size++;
@@ -290,7 +289,7 @@ public class BTree{
      * @param parent pai dos dois nós
      * @param index índice do node na lista de filhos do pai
      */
-    private void redistribuirDireita(BNode node, BNode rightSibling, BNode parent, int index){
+    private void redistributeRight(BNode node, BNode rightSibling, BNode parent, int index){
         //chave do pai desce para o final do node
         node.keys.add(parent.keys.get(index));
         node.size++;
@@ -316,7 +315,7 @@ public class BTree{
      * @param parent pai dos dois nós
      * @param parentKeyIndex índice da chave do pai que separa os dois nós
      */
-    private void concatenar(BNode left, BNode right, BNode parent, int parentKeyIndex){
+    private void concatenate(BNode left, BNode right, BNode parent, int parentKeyIndex){
         //chave do pai desce para o meio da concatenacao
         left.keys.add(parent.keys.remove(parentKeyIndex));
         left.size++;
@@ -335,9 +334,8 @@ public class BTree{
 
         //remove o filho direito do pai e propaga underflow, se houver
         parent.children.remove(right);
-        corrigirUnderflow(parent);
-    }    
-
+        fixUnderflow(parent);
+    }
 
     /**
      * Retorna os nós da árvore em ordem de profundidade, em pré ordem.
@@ -470,7 +468,7 @@ public class BTree{
      * @param value valor procurado
      * @return índice da posição do filho no qual seguir a busca
      */
-    private int buscaBinaria(BNode node, int value) {
+    private int binarySearch(BNode node, int value) {
         int init = 0, end = node.size-1, idx = node.size;
         while(init <= end) {
             int mid = (init + end) / 2;
@@ -491,7 +489,7 @@ public class BTree{
      * @param value valor procurado
      * @return índice da posição do filho no qual seguir a busca
      */
-    private int buscaLinear(BNode node, int value) {
+    private int linearSearch(BNode node, int value) {
         int idx = 0;
         while(idx < node.size && value > node.keys.get(idx)) {
             idx++;
